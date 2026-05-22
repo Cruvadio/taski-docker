@@ -18,25 +18,33 @@ services:
   # Имя и описание контейнера с бэкендом
   backend:
     # Из какого Dockerfile собирать образ для этого контейнера:
-    image: cruvadio/taski_backend
+    image: cruvadio/taski_backend:latest
     env_file: .env
     # Какие контейнеры нужно запустить до старта этого контейнера:
     depends_on:
-      - db
+      frontend:
+        condition: service_completed_successfully
+      db:
+        condition: service_started
     volumes:
       - static_volume:/backend_static
+
+
   # Имя третьего контейнера. Это контейнер с фронтендом
   frontend:
     env_file: .env
-    image: cruvadio/taski_frontend
+    image: cruvadio/taski_frontend:latest
 
     command: cp -r /app/build/. /frontend_static/
     volumes:
         - static_volume:/frontend_static
 
   gateway:
-    image: cruvadio/taski_gateway
+    image: cruvadio/taski_gateway:latest
     env_file: .env
+    depends_on:
+        backend:
+            condition: service_started
     volumes:
       - static_volume:/staticfiles
     ports:
